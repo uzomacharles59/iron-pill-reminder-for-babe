@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Your Daily Iron Reminder 💊</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f2ee;
+    --card: #ffffff;
+    --rust: #c0622e;
+    --rust-light: #f0ddd3;
+    --rust-mid: #e8a882;
+    --text: #2a1a0e;
+    --muted: #9a7e6f;
+    --gold: #d4a853;
+    --green: #4a7c59;
+    --green-light: #d6ead e;
+    --border: #e8ddd6;
+  }
+
+  html, body {
+    min-height: 100%;
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(circle at 20% 20%, rgba(192,98,46,0.06) 0%, transparent 50%),
+                      radial-gradient(circle at 80% 80%, rgba(212,168,83,0.06) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 2rem 1.2rem 4rem;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.8s ease forwards;
+  }
+
+  .pill-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--rust);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 28px;
+    box-shadow: 0 8px 24px rgba(192,98,46,0.25);
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100%{ box-shadow: 0 8px 24px rgba(192,98,46,0.25); transform: scale(1); }
+    50%{ box-shadow: 0 12px 32px rgba(192,98,46,0.4); transform: scale(1.04); }
+  }
+
+  .header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.9rem;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 0.3rem;
+  }
+
+  .header p {
+    font-size: 0.9rem;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 16px rgba(42,26,14,0.05);
+    animation: fadeUp 0.8s ease forwards;
+  }
+
+  .card-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.6rem;
+    font-weight: 500;
+  }
+
+  /* STREAK SECTION */
+  .streak-card {
+    background: var(--rust);
+    color: white;
+    border: none;
+    text-align: center;
+    padding: 2rem 1.5rem;
+  }
+
+  .streak-card .card-label {
+    color: rgba(255,255,255,0.7);
+  }
+
+  .streak-number {
+    font-family: 'DM Serif Display', serif;
+    font-size: 5rem;
+    line-height: 1;
+    color: white;
+    margin: 0.2rem 0;
+  }
+
+  .streak-sub {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.75);
+    margin-top: 0.3rem;
+  }
+
+  .streak-flames {
+    font-size: 1.4rem;
+    margin-top: 0.8rem;
+    letter-spacing: 0.1em;
+  }
+
+  /* TODAY BUTTON */
+  .take-btn {
+    width: 100%;
+    padding: 1.1rem;
+    background: var(--rust);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    margin-top: 1rem;
+    letter-spacing: 0.02em;
+  }
+  .take-btn:hover { background: #a8521f; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(192,98,46,0.3); }
+  .take-btn:active { transform: translateY(0); }
+  .take-btn.taken {
+    background: var(--green);
+    cursor: default;
+    transform: none;
+    box-shadow: none;
+  }
+  .take-btn.taken:hover { background: var(--green); transform: none; }
+
+  /* CALENDAR STRIP */
+  .calendar-strip {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.3rem;
+    scrollbar-width: none;
+  }
+  .calendar-strip::-webkit-scrollbar { display: none; }
+
+  .cal-day {
+    min-width: 44px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .cal-day .day-name {
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .cal-day .day-num {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .cal-day.done {
+    background: var(--rust-light);
+    border-color: var(--rust-mid);
+  }
+  .cal-day.done .day-num { color: var(--rust); }
+  .cal-day.today {
+    background: var(--rust);
+    border-color: var(--rust);
+  }
+  .cal-day.today .day-name,
+  .cal-day.today .day-num { color: white; }
+  .cal-day .check {
+    font-size: 0.7rem;
+  }
+
+  /* QUOTE CARD */
+  .quote-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.15rem;
+    font-style: italic;
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 0.6rem;
+  }
+  .quote-author {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .quote-toggle {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .qtab {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.9rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .qtab.active {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: white;
+  }
+
+  /* NEXT REMINDER */
+  .next-time {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    color: var(--rust);
+  }
+  .next-label {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+  }
+
+  /* SEND TEST */
+  .test-btn {
+    width: 100%;
+    padding: 0.85rem;
+    background: transparent;
+    color: var(--rust);
+    border: 1.5px solid var(--rust);
+    border-radius: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    margin-top: 0.5rem;
+  }
+  .test-btn:hover { background: var(--rust-light); }
+
+  .status-msg {
+    text-align: center;
+    font-size: 0.85rem;
+    margin-top: 0.8rem;
+    min-height: 1.2rem;
+    color: var(--green);
+    font-weight: 500;
+  }
+  .status-msg.error { color: #c0392b; }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+  }
+  .stat-box {
+    background: var(--bg);
+    border-radius: 14px;
+    padding: 1rem;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  .stat-val {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+    color: var(--rust);
+  }
+  .stat-lbl {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card:nth-child(1) { animation-delay: 0.1s; opacity: 0; }
+  .card:nth-child(2) { animation-delay: 0.2s; opacity: 0; }
+  .card:nth-child(3) { animation-delay: 0.3s; opacity: 0; }
+  .card:nth-child(4) { animation-delay: 0.4s; opacity: 0; }
+  .card:nth-child(5) { animation-delay: 0.5s; opacity: 0; }
+  .card:nth-child(6) { animation-delay: 0.6s; opacity: 0; }
+
+  .confetti {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* Scheduler hidden info */
+  .scheduler-info {
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 1.5rem;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="pill-icon">💊</div>
+    <h1>Your Iron Reminder</h1>
+    <p>A little love note, every single day</p>
+  </div>
+
+  <!-- STREAK -->
+  <div class="card streak-card">
+    <div class="card-label">Current Streak</div>
+    <div class="streak-number" id="streakNum">0</div>
+    <div class="streak-sub">days in a row 🎉</div>
+    <div class="streak-flames" id="streakFlames"></div>
+  </div>
+
+  <!-- TODAY -->
+  <div class="card">
+    <div class="card-label">Today's Dose</div>
+    <div id="todayStatus" style="font-size:1rem; color: var(--muted); margin-bottom: 0.2rem;">Have you taken your iron pill today?</div>
+    <button class="take-btn" id="takeBtn" onclick="markTaken()">✓ I took my pill today</button>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="card">
+    <div class="card-label">This Week</div>
+    <div class="calendar-strip" id="calendarStrip"></div>
+  </div>
+
+  <!-- STATS -->
+  <div class="card">
+    <div class="card-label">Your Progress</div>
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-val" id="totalDays">0</div>
+        <div class="stat-lbl">Total Days</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="bestStreak">0</div>
+        <div class="stat-lbl">Best Streak</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUOTE -->
+  <div class="card">
+    <div class="card-label">Today's Quote</div>
+    <div class="quote-toggle">
+      <button class="qtab active" onclick="switchQuote('health', this)">Health</button>
+      <button class="qtab" onclick="switchQuote('love', this)">Love</button>
+    </div>
+    <div class="quote-text" id="quoteText"></div>
+    <div class="quote-author" id="quoteAuthor"></div>
+  </div>
+
+  <!-- NEXT REMINDER -->
+  <div class="card">
+    <div class="card-label">Next SMS Reminder</div>
+    <div class="next-time" id="nextTime">9:00 PM</div>
+    <div class="next-label">Ann Arbor, Michigan (ET) — daily</div>
+    <button class="test-btn" onclick="sendTestSMS()">Send a test message now</button>
+    <div class="status-msg" id="statusMsg"></div>
+  </div>
+
+
+
+</div>
+
+<canvas class="confetti" id="confettiCanvas"></canvas>
+
+<script>
+  // ── CONFIG ──────────────────────────────────────────────
+  const TEXTBELT_KEY = '5ae0eb82f1a01d124562ee7cf7b2f7fe79b47f9eMFwl3tZ1Cb0uN2GUnvXnHm4TZ';
+  const PHONE = '+12163928538';
+  const SEND_HOUR_ET = 21; // 9 PM
+
+  // ── QUOTES ──────────────────────────────────────────────
+  const healthQuotes = [
+    { text: "Take care of your body. It's the only place you have to live.", author: "Jim Rohn" },
+    { text: "A healthy outside starts from the inside.", author: "Robert Urich" },
+    { text: "The groundwork of all happiness is health.", author: "Leigh Hunt" },
+    { text: "To keep the body in good health is a duty, otherwise we shall not be able to keep our mind strong.", author: "Buddha" },
+    { text: "Health is not about the weight you lose, but about the life you gain.", author: "Unknown" },
+    { text: "Your body hears everything your mind says. Stay positive.", author: "Unknown" },
+    { text: "An ounce of prevention is worth a pound of cure.", author: "Benjamin Franklin" },
+    { text: "The first wealth is health.", author: "Ralph Waldo Emerson" },
+    { text: "Caring for yourself is not self-indulgence. It is self-preservation.", author: "Audre Lorde" },
+    { text: "Small daily improvements are the key to staggering long-term results.", author: "Unknown" },
+  ];
+
+  const loveQuotes = [
+    { text: "You are my today and all of my tomorrows.", author: "Leo Christopher" },
+    { text: "In all the world, there is no heart for me like yours.", author: "Maya Angelou" },
+    { text: "I love you not only for what you are, but for what I am when I am with you.", author: "Roy Croft" },
+    { text: "You are the finest, loveliest, tenderest, and most beautiful person I have ever known.", author: "F. Scott Fitzgerald" },
+    { text: "Whatever our souls are made of, yours and mine are the same.", author: "Emily Brontë" },
+    { text: "I have waited for this opportunity for more than half a century.", author: "Nelson Mandela" },
+    { text: "To love and be loved is to feel the sun from both sides.", author: "David Viscott" },
+    { text: "If I know what love is, it is because of you.", author: "Hermann Hesse" },
+    { text: "The best thing to hold onto in life is each other.", author: "Audrey Hepburn" },
+    { text: "You are my heart, my life, my one and only thought.", author: "Arthur Conan Doyle" },
+  ];
+
+  // ── SMS MESSAGES ──────────────────────────────────────
+  const smsMessages = [
+    "Hi Doctor M! 💊 Time for your iron pill. Your health matters more than you know. Take it with a little water and a big smile. Sweet dreams tonight.",
+    "Good evening, Doctor M 🌙 Your daily iron reminder is here. A healthy you is the greatest gift. Don't forget your pill tonight!",
+    "Hey Doctor M 💊 9 PM means iron pill time! You spend your days healing others, now let this little pill do something for you. Rest well tonight.",
+    "Evening reminder, Doctor M! 🌹 Your iron pill is waiting. Take care of yourself the way you take care of everyone else. Goodnight!",
+    "Doctor M, your daily iron pill reminder! 💊 Consistency is everything. One small habit, one healthier you. Have a beautiful night.",
+    "Hi Doctor M! Just a gentle nudge to take your iron pill tonight. You deserve to feel your absolute best every single day. Goodnight 🌙",
+    "Iron pill time, Doctor M! 💊 You are brilliant, you are strong, and you deserve to be healthy. One pill, one step. Sweet dreams!",
+    "Good evening Doctor M 🌹 Don't forget your iron pill tonight! Small habits build great health. Wishing you a peaceful and restful night.",
+    "Hey Doctor M! 💊 Your 9 PM iron reminder. You heal so many lives, let this pill take care of yours. Goodnight and sweet dreams!",
+    "Evening Doctor M! Time for your iron pill 💊 Your consistency this week has been amazing. Keep going, you are doing great. Goodnight!",
+  ];
+
+  // ── STATE ──────────────────────────────────────────────
+  function getState() {
+    const s = localStorage.getItem('ironpills_state');
+    return s ? JSON.parse(s) : { takenDates: [], streak: 0, bestStreak: 0 };
+  }
+
+  function saveState(s) {
+    localStorage.setItem('ironpills_state', JSON.stringify(s));
+  }
+
+  function todayStr() {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  function isTakenToday() {
+    return getState().takenDates.includes(todayStr());
+  }
+
+  function calcStreak(dates) {
+    if (!dates.length) return 0;
+    const sorted = [...dates].sort().reverse();
+    const today = todayStr();
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    if (sorted[0] !== today && sorted[0] !== yesterday) return 0;
+    let streak = 0;
+    let check = sorted[0] === today ? new Date() : new Date(Date.now() - 86400000);
+    for (let i = 0; i < sorted.length; i++) {
+      const d = check.toISOString().split('T')[0];
+      if (sorted[i] === d) {
+        streak++;
+        check = new Date(check - 86400000);
+      } else break;
+    }
+    return streak;
+  }
+
+  // ── MARK TAKEN ──────────────────────────────────────────
+  function markTaken() {
+    if (isTakenToday()) return;
+    const state = getState();
+    state.takenDates.push(todayStr());
+    state.streak = calcStreak(state.takenDates);
+    state.bestStreak = Math.max(state.streak, state.bestStreak || 0);
+    saveState(state);
+    render();
+    launchConfetti();
+  }
+
+  // ── RENDER ──────────────────────────────────────────────
+  function render() {
+    const state = getState();
+    const taken = isTakenToday();
+    const streak = calcStreak(state.takenDates);
+
+    // Streak
+    document.getElementById('streakNum').textContent = streak;
+    document.getElementById('streakFlames').textContent = streak >= 3 ? '🔥'.repeat(Math.min(streak, 7)) : '';
+    document.getElementById('totalDays').textContent = state.takenDates.length;
+    document.getElementById('bestStreak').textContent = state.bestStreak || 0;
+
+    // Today button
+    const btn = document.getElementById('takeBtn');
+    const status = document.getElementById('todayStatus');
+    if (taken) {
+      btn.textContent = '✓ Taken today — well done!';
+      btn.classList.add('taken');
+      status.textContent = "Amazing! Keep that streak going 🔥";
+      status.style.color = 'var(--green)';
+    } else {
+      btn.textContent = '✓ I took my pill today';
+      btn.classList.remove('taken');
+      status.textContent = 'Have you taken your iron pill today?';
+      status.style.color = 'var(--muted)';
+    }
+
+    // Calendar — last 7 days
+    const strip = document.getElementById('calendarStrip');
+    strip.innerHTML = '';
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 86400000);
+      const dStr = d.toISOString().split('T')[0];
+      const isToday = i === 0;
+      const done = state.takenDates.includes(dStr);
+      const el = document.createElement('div');
+      el.className = 'cal-day' + (isToday ? ' today' : '') + (!isToday && done ? ' done' : '');
+      el.innerHTML = `<span class="day-name">${days[d.getDay()]}</span><span class="day-num">${d.getDate()}</span><span class="check">${done ? '✓' : ''}</span>`;
+      strip.appendChild(el);
+    }
+  }
+
+  // ── QUOTES ──────────────────────────────────────────────
+  let currentQuoteType = 'health';
+
+  function getDailyQuote(type) {
+    const arr = type === 'health' ? healthQuotes : loveQuotes;
+    const dayIndex = Math.floor(Date.now() / 86400000) % arr.length;
+    return arr[dayIndex];
+  }
+
+  function renderQuote(type) {
+    const q = getDailyQuote(type);
+    document.getElementById('quoteText').textContent = '"' + q.text + '"';
+    document.getElementById('quoteAuthor').textContent = '— ' + q.author;
+  }
+
+  function switchQuote(type, el) {
+    currentQuoteType = type;
+    document.querySelectorAll('.qtab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    renderQuote(type);
+  }
+
+  // ── SMS ──────────────────────────────────────────────────
+  function getDailySMS() {
+    const idx = Math.floor(Date.now() / 86400000) % smsMessages.length;
+    return smsMessages[idx];
+  }
+
+  async function sendSMS(message) {
+    const res = await fetch('https://textbelt.com/text', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: PHONE, message, key: TEXTBELT_KEY })
+    });
+    return res.json();
+  }
+
+  async function sendTestSMS() {
+    const btn = document.querySelector('.test-btn');
+    const msg = document.getElementById('statusMsg');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    msg.textContent = '';
+    msg.className = 'status-msg';
+    try {
+      const result = await sendSMS(getDailySMS());
+      if (result.success) {
+        msg.textContent = 'Message sent to Dr. Chidera! 🌹';
+        msg.className = 'status-msg';
+      } else {
+        msg.textContent = 'Error: ' + (result.error || 'Something went wrong');
+        msg.className = 'status-msg error';
+      }
+    } catch (e) {
+      msg.textContent = 'Failed to send. Check your connection.';
+      msg.className = 'status-msg error';
+    }
+    btn.disabled = false;
+    btn.textContent = 'Send a test message now';
+  }
+
+  // ── CONFETTI ────────────────────────────────────────────
+  function launchConfetti() {
+    const canvas = document.getElementById('confettiCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const pieces = Array.from({length: 80}, () => ({
+      x: Math.random() * canvas.width,
+      y: -10,
+      r: Math.random() * 6 + 3,
+      d: Math.random() * 3 + 1,
+      color: ['#c0622e','#d4a853','#4a7c59','#e8a882','#f0ddd3'][Math.floor(Math.random()*5)],
+      tilt: Math.random() * 10 - 5,
+      tiltAngle: 0,
+    }));
+    let frame = 0;
+    function draw() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      pieces.forEach(p => {
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, p.r, p.r/2, p.tilt, 0, Math.PI*2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+        p.y += p.d + 1;
+        p.x += Math.sin(frame * 0.02 + p.tiltAngle) * 1.5;
+        p.tiltAngle += 0.05;
+      });
+      frame++;
+      if (frame < 120) requestAnimationFrame(draw);
+      else ctx.clearRect(0,0,canvas.width,canvas.height);
+    }
+    draw();
+  }
+
+  // ── INIT ────────────────────────────────────────────────
+  render();
+  renderQuote('health');
+</script>
+
+<!-- CRON SETUP INFO (hidden comment for developer) -->
+<!--
+  TO AUTOMATE DAILY 9PM ET SMS:
+  1. Host this file on Netlify (same as countdown page)
+  2. Go to cron-job.org and create a free account
+  3. Create a new cron job with this URL:
+     https://YOUR-NETLIFY-URL/send (see below for serverless function)
+
+  EASIER OPTION — Netlify Scheduled Function:
+  Create a file: netlify/functions/send-reminder.js
+  with this content:
+
+  const fetch = require('node-fetch');
+  exports.handler = async () => {
+    const messages = [/* paste smsMessages array here */];
+    const idx = Math.floor(Date.now() / 86400000) % messages.length;
+    await fetch('https://textbelt.com/text', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phone: '+12163928538',
+        message: messages[idx],
+        key: '5ae0eb82f1a01d124562ee7cf7b2f7fe79b47f9eMFwl3tZ1Cb0uN2GUnvXnHm4TZ'
+      })
+    });
+    return { statusCode: 200 };
+  };
+  exports.schedule = '0 2 * * *'; // 9PM ET = 2AM UTC
+
+  Then add to netlify.toml:
+  [functions]
+    schedule = "0 2 * * *"
+-->
+</body>
+</html>
